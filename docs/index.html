@@ -506,7 +506,7 @@
                 stopsCount: 'Остановок',
                 errorMessage: 'Пожалуйста, добавьте минимум 2 остановки',
                 exampleTitle: '💡 Пример маршрута:',
-                exampleText: 'Москва → Санкт-Петербург → Казань → Екатеринбург',
+                exampleText: 'Киев → Одесса → Харьков → Львов',
                 confirmBtn: '✅ Подтвердить маршрут',
                 successMessage: '✅ Маршрут успешно сохранен!',
                 errorSaving: 'Ошибка при сохранении маршрута. Попробуйте еще раз.',
@@ -918,21 +918,39 @@
                 
                 // Отправляем вебхук на сервер (асинхронно, не чекаємо відповіді)
                 console.log('Sending webhook to:', webhookUrl);
+                
+                // Спробуємо відправити webhook з обробкою CORS та Mixed Content
+                const webhookData = {
+                    user_id: userId,
+                    route: citiesString,
+                    lang: userLang,
+                    timestamp: new Date().toISOString()
+                };
+                
                 fetch(webhookUrl, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        route: citiesString,
-                        lang: userLang,
-                        timestamp: new Date().toISOString()
-                    })
+                    body: JSON.stringify(webhookData)
                 }).then(response => {
                     console.log('Webhook response:', response.status);
+                    if (response.ok) {
+                        console.log('✅ Webhook sent successfully');
+                    }
                 }).catch(error => {
-                    console.log('Webhook error:', error);
+                    console.log('❌ Webhook error:', error);
+                    
+                    // Якщо основний webhook не працює, спробуємо через image pixel trick
+                    // (це працює навіть з Mixed Content, але тільки для GET запитів)
+                    const fallbackUrl = webhookUrl.replace('/webhook', '/fallback_webhook') + 
+                        `?user_id=${encodeURIComponent(userId)}&route=${encodeURIComponent(citiesString)}&lang=${encodeURIComponent(userLang)}`;
+                    
+                    const img = new Image();
+                    img.onload = () => console.log('✅ Fallback webhook sent via image');
+                    img.onerror = () => console.log('❌ Fallback webhook also failed');
+                    img.src = fallbackUrl;
                 });
                 
                 // Одразу показуємо успіх і закриваємо

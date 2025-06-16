@@ -1,0 +1,3 @@
+token = '7511831697:AAEZA__1PBYEUuO1U6DAG6QSKlbO7qIfpkk'
+
+administrators = [292246981, 585621771]
