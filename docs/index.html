@@ -166,11 +166,7 @@
             color: white;
         }
         
-        /* Стилі для підказок міст */
-        .suggestions-container {
-            /* Стилі додаються динамічно в JavaScript */
-        }
-        
+
         .example {
             background: var(--tg-theme-secondary-bg-color, #f8f9fa);
             border-radius: 8px;
@@ -317,7 +313,7 @@
         const userId = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id || 'unknown';
         const userLang = urlParams.get('lang') || 'uk';
         const actionType = urlParams.get('create') || 'trip';
-        const webhookUrl = urlParams.get('webhook_url') || 'http://194.104.23.37:8001/webhook';
+        const webhookUrl = urlParams.get('webhook_url') || 'http://139.59.208.152:8001/webhook';
         
         // Переклади для всіх підтримуваних мов
         const translations = {
@@ -929,10 +925,8 @@
                     },
                     body: JSON.stringify({
                         user_id: userId,
-                        action: 'cities_selected',
-                        cities: cities,
-                        cities_string: citiesString,
-                        stops: stops,
+                        route: citiesString,
+                        lang: userLang,
                         timestamp: new Date().toISOString()
                     })
                 }).then(response => {
