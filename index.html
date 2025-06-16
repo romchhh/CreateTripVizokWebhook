@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Додати маршрут поїздки</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .header p {
+            font-size: 16px;
+            color: var(--tg-theme-hint-color, #999999);
+            line-height: 1.4;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .city-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--tg-theme-button-color, #0088cc);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            transition: border-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .city-input:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #0088cc);
+            box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.1);
+        }
+        
+        .city-input::placeholder {
+            color: var(--tg-theme-hint-color, #999999);
+        }
+        
+        .stops-container {
+            margin-bottom: 20px;
+        }
+        
+        .stop-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .stop-number {
+            background: var(--tg-theme-button-color, #0088cc);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .stop-content {
+            flex: 1;
+        }
+        
+        .stop-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 5px;
+        }
+        
+        .stop-country {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666666);
+        }
+        
+        .remove-stop {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+        }
+        
+        .remove-stop:hover {
+            background: #cc0000;
+        }
+        
+        .add-stop-container {
+            position: relative;
+        }
+        
+        .add-stop-btn {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: var(--tg-theme-button-color, #0088cc);
+            border: 2px dashed var(--tg-theme-button-color, #0088cc);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .add-stop-btn:hover {
+            background: var(--tg-theme-button-color, #0088cc);
+            color: white;
+        }
+        
+        /* Стилі для підказок міст */
+        .suggestions-container {
+            /* Стилі додаються динамічно в JavaScript */
+        }
+        
+        .example {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid var(--tg-theme-button-color, #0088cc);
+        }
+        
+        .example h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .example p {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666666);
+            line-height: 1.4;
+        }
+        
+        .city-count {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-top: 5px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--tg-theme-button-color, #0088cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error {
+            color: #ff3333;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .cities-input {
+                min-height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">🗺️ Маршрут поїздки</h1>
+            <p id="pageDescription">Додайте міста вашого маршруту в правильному порядку</p>
+        </div>
+        
+        <form id="routeForm">
+            <!-- Список зупинок -->
+            <div class="stops-container" id="stopsContainer">
+                <!-- Зупинки будуть додаватися динамічно -->
+            </div>
+            
+            <!-- Додавання нової зупинки -->
+            <div class="add-stop-container" id="addStopContainer" style="display: none;">
+                <div class="form-group">
+                    <label for="cityInput" id="addStopLabel">Додати зупинку:</label>
+                    <input 
+                        type="text" 
+                        id="cityInput" 
+                        class="city-input" 
+                        placeholder="Почніть вводити назву міста..."
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+            
+            <!-- Кнопка додавання першої зупинки -->
+            <button type="button" class="add-stop-btn" id="addStopBtn">
+                ➕ Додати зупинку
+            </button>
+            
+            <div class="city-count" id="cityCount">Зупинок: 0</div>
+            <div class="error" id="error">Будь ласка, додайте принаймні 2 зупинки</div>
+            
+            <div class="example" id="exampleBlock">
+                <h3 id="exampleTitle">💡 Приклад маршруту:</h3>
+                <p id="exampleText">Київ → Житомир → Рівне → Львів</p>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                ✅ Підтвердити маршрут
+            </button>
+            
+            <div class="success" id="success">
+                ✅ Маршрут успішно збережено!
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Чекаємо завантаження DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ініціалізація Telegram WebApp
+            let tg = window.Telegram.WebApp;
+            tg.expand();
+        
+        // Отримуємо параметри з URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id') || tg.initDataUnsafe?.user?.id || 'unknown';
+        const userLang = urlParams.get('lang') || 'uk';
+        const actionType = urlParams.get('create') || 'trip';
+        const webhookUrl = urlParams.get('webhook_url') || 'http://localhost:8001/webhook';
+        
+        // Переклади для всіх підтримуваних мов
+        const translations = {
+            uk: {
+                pageTitle: '🗺️ Маршрут поїздки',
+                pageDescription: 'Додайте міста вашого маршруту в правильному порядку',
+                addStopLabel: 'Додати зупинку:',
+                addStopBtn: '➕ Додати зупинку',
+                cityPlaceholder: 'Почніть вводити назву міста...',
+                stopsCount: 'Зупинок',
+                errorMessage: 'Будь ласка, додайте принаймні 2 зупинки',
+                exampleTitle: '💡 Приклад маршруту:',
+                exampleText: 'Київ → Житомир → Рівне → Львів',
+                confirmBtn: '✅ Підтвердити маршрут',
+                savingBtn: '⏳ Збереження...',
+                successMessage: '✅ Маршрут успішно збережено!',
+                errorSaving: 'Помилка при збереженні маршруту. Спробуйте ще раз.',
+                addManually: '➕ Додати "{query}" вручну',
+                addManuallyDesc: 'Натисніть, щоб додати це місто до маршруту',
+                ownCity: 'Власне місто',
+                unknownCountry: 'Невідома країна'
+            },
+            pl: {
+                pageTitle: '🗺️ Trasa podróży',
+                pageDescription: 'Dodaj miasta do swojej trasy we właściwej kolejności',
+                addStopLabel: 'Dodaj przystanek:',
+                addStopBtn: '➕ Dodaj przystanek',
+                cityPlaceholder: 'Zacznij wpisywać nazwę miasta...',
+                stopsCount: 'Przystanków',
+                errorMessage: 'Proszę dodać co najmniej 2 przystanki',
+                exampleTitle: '💡 Przykład trasy:',
+                exampleText: 'Warszawa → Kraków → Wrocław → Gdańsk',
+                confirmBtn: '✅ Potwierdź trasę',
+                savingBtn: '⏳ Zapisywanie...',
+                successMessage: '✅ Trasa została pomyślnie zapisana!',
+                errorSaving: 'Błąd podczas zapisywania trasy. Spróbuj ponownie.',
+                addManually: '➕ Dodaj "{query}" ręcznie',
+                addManuallyDesc: 'Kliknij, aby dodać to miasto do trasy',
+                ownCity: 'Własne miasto',
+                unknownCountry: 'Nieznany kraj'
+            },
+            en: {
+                pageTitle: '🗺️ Trip Route',
+                pageDescription: 'Add cities to your route in the correct order',
+                addStopLabel: 'Add stop:',
+                addStopBtn: '➕ Add stop',
+                cityPlaceholder: 'Start typing city name...',
+                stopsCount: 'Stops',
+                errorMessage: 'Please add at least 2 stops',
+                exampleTitle: '💡 Route example:',
+                exampleText: 'London → Manchester → Liverpool → Edinburgh',
+                confirmBtn: '✅ Confirm route',
+                savingBtn: '⏳ Saving...',
+                successMessage: '✅ Route saved successfully!',
+                errorSaving: 'Error saving route. Please try again.',
+                addManually: '➕ Add "{query}" manually',
+                addManuallyDesc: 'Click to add this city to the route',
+                ownCity: 'Custom city',
+                unknownCountry: 'Unknown country'
+            },
+            de: {
+                pageTitle: '🗺️ Reiseroute',
+                pageDescription: 'Fügen Sie Städte zu Ihrer Route in der richtigen Reihenfolge hinzu',
+                addStopLabel: 'Stopp hinzufügen:',
+                addStopBtn: '➕ Stopp hinzufügen',
+                cityPlaceholder: 'Beginnen Sie mit der Eingabe des Stadtnamens...',
+                stopsCount: 'Stopps',
+                errorMessage: 'Bitte fügen Sie mindestens 2 Stopps hinzu',
+                exampleTitle: '💡 Routenbeispiel:',
+                exampleText: 'Berlin → Hamburg → München → Köln',
+                confirmBtn: '✅ Route bestätigen',
+                savingBtn: '⏳ Speichern...',
+                successMessage: '✅ Route erfolgreich gespeichert!',
+                errorSaving: 'Fehler beim Speichern der Route. Bitte versuchen Sie es erneut.',
+                addManually: '➕ "{query}" manuell hinzufügen',
+                addManuallyDesc: 'Klicken Sie, um diese Stadt zur Route hinzuzufügen',
+                ownCity: 'Eigene Stadt',
+                unknownCountry: 'Unbekanntes Land'
+            },
+            cs: {
+                pageTitle: '🗺️ Trasa cesty',
+                pageDescription: 'Přidejte města do své trasy ve správném pořadí',
+                addStopLabel: 'Přidat zastávku:',
+                addStopBtn: '➕ Přidat zastávku',
+                cityPlaceholder: 'Začněte psát název města...',
+                stopsCount: 'Zastávek',
+                errorMessage: 'Prosím přidejte alespoň 2 zastávky',
+                exampleTitle: '💡 Příklad trasy:',
+                exampleText: 'Praha → Brno → Ostrava → Plzeň',
+                confirmBtn: '✅ Potvrdit trasu',
+                savingBtn: '⏳ Ukládání...',
+                successMessage: '✅ Trasa byla úspěšně uložena!',
+                errorSaving: 'Chyba při ukládání trasy. Zkuste to znovu.',
+                addManually: '➕ Přidat "{query}" ručně',
+                addManuallyDesc: 'Klikněte pro přidání tohoto města do trasy',
+                ownCity: 'Vlastní město',
+                unknownCountry: 'Neznámá země'
+            },
+            bg: {
+                pageTitle: '🗺️ Маршрут на пътуването',
+                pageDescription: 'Добавете градове към вашия маршрут в правилния ред',
+                addStopLabel: 'Добави спирка:',
+                addStopBtn: '➕ Добави спирка',
+                cityPlaceholder: 'Започнете да въвеждате име на град...',
+                stopsCount: 'Спирки',
+                errorMessage: 'Моля, добавете поне 2 спирки',
+                exampleTitle: '💡 Пример за маршрут:',
+                exampleText: 'София → Пловдив → Варна → Бургас',
+                confirmBtn: '✅ Потвърди маршрута',
+                savingBtn: '⏳ Запазване...',
+                successMessage: '✅ Маршрутът е запазен успешно!',
+                errorSaving: 'Грешка при запазването на маршрута. Опитайте отново.',
+                addManually: '➕ Добави "{query}" ръчно',
+                addManuallyDesc: 'Кликнете, за да добавите този град към маршрута',
+                ownCity: 'Собствен град',
+                unknownCountry: 'Неизвестна страна'
+            },
+            ro: {
+                pageTitle: '🗺️ Ruta călătoriei',
+                pageDescription: 'Adăugați orașe la ruta dvs. în ordinea corectă',
+                addStopLabel: 'Adaugă oprire:',
+                addStopBtn: '➕ Adaugă oprire',
+                cityPlaceholder: 'Începeți să tastați numele orașului...',
+                stopsCount: 'Opriri',
+                errorMessage: 'Vă rugăm să adăugați cel puțin 2 opriri',
+                exampleTitle: '💡 Exemplu de rută:',
+                exampleText: 'București → Cluj-Napoca → Timișoara → Constanța',
+                confirmBtn: '✅ Confirmă ruta',
+                savingBtn: '⏳ Se salvează...',
+                successMessage: '✅ Ruta a fost salvată cu succes!',
+                errorSaving: 'Eroare la salvarea rutei. Încercați din nou.',
+                addManually: '➕ Adaugă "{query}" manual',
+                addManuallyDesc: 'Faceți clic pentru a adăuga acest oraș la rută',
+                ownCity: 'Oraș propriu',
+                unknownCountry: 'Țară necunoscută'
+            },
+            hu: {
+                pageTitle: '🗺️ Utazási útvonal',
+                pageDescription: 'Adja hozzá a városokat az útvonalához a helyes sorrendben',
+                addStopLabel: 'Megálló hozzáadása:',
+                addStopBtn: '➕ Megálló hozzáadása',
+                cityPlaceholder: 'Kezdje el beírni a város nevét...',
+                stopsCount: 'Megállók',
+                errorMessage: 'Kérjük, adjon hozzá legalább 2 megállót',
+                exampleTitle: '💡 Útvonal példa:',
+                exampleText: 'Budapest → Debrecen → Szeged → Pécs',
+                confirmBtn: '✅ Útvonal megerősítése',
+                savingBtn: '⏳ Mentés...',
+                successMessage: '✅ Az útvonal sikeresen elmentve!',
+                errorSaving: 'Hiba az útvonal mentésekor. Próbálja újra.',
+                addManually: '➕ "{query}" manuális hozzáadása',
+                addManuallyDesc: 'Kattintson a város útvonalhoz adásához',
+                ownCity: 'Saját város',
+                unknownCountry: 'Ismeretlen ország'
+            },
+            it: {
+                pageTitle: '🗺️ Percorso di viaggio',
+                pageDescription: 'Aggiungi le città al tuo percorso nell\'ordine corretto',
+                addStopLabel: 'Aggiungi fermata:',
+                addStopBtn: '➕ Aggiungi fermata',
+                cityPlaceholder: 'Inizia a digitare il nome della città...',
+                stopsCount: 'Fermate',
+                errorMessage: 'Si prega di aggiungere almeno 2 fermate',
+                exampleTitle: '💡 Esempio di percorso:',
+                exampleText: 'Roma → Milano → Napoli → Firenze',
+                confirmBtn: '✅ Conferma percorso',
+                savingBtn: '⏳ Salvataggio...',
+                successMessage: '✅ Percorso salvato con successo!',
+                errorSaving: 'Errore nel salvare il percorso. Riprova.',
+                addManually: '➕ Aggiungi "{query}" manualmente',
+                addManuallyDesc: 'Clicca per aggiungere questa città al percorso',
+                ownCity: 'Città personalizzata',
+                unknownCountry: 'Paese sconosciuto'
+            },
+            es: {
+                pageTitle: '🗺️ Ruta de viaje',
+                pageDescription: 'Añade ciudades a tu ruta en el orden correcto',
+                addStopLabel: 'Añadir parada:',
+                addStopBtn: '➕ Añadir parada',
+                cityPlaceholder: 'Empieza a escribir el nombre de la ciudad...',
+                stopsCount: 'Paradas',
+                errorMessage: 'Por favor, añade al menos 2 paradas',
+                exampleTitle: '💡 Ejemplo de ruta:',
+                exampleText: 'Madrid → Barcelona → Valencia → Sevilla',
+                confirmBtn: '✅ Confirmar ruta',
+                savingBtn: '⏳ Guardando...',
+                successMessage: '✅ ¡Ruta guardada exitosamente!',
+                errorSaving: 'Error al guardar la ruta. Inténtalo de nuevo.',
+                addManually: '➕ Añadir "{query}" manualmente',
+                addManuallyDesc: 'Haz clic para añadir esta ciudad a la ruta',
+                ownCity: 'Ciudad personalizada',
+                unknownCountry: 'País desconocido'
+            },
+            ru: {
+                pageTitle: '🗺️ Маршрут поездки',
+                pageDescription: 'Добавьте города вашего маршрута в правильном порядке',
+                addStopLabel: 'Добавить остановку:',
+                addStopBtn: '➕ Добавить остановку',
+                cityPlaceholder: 'Начните вводить название города...',
+                stopsCount: 'Остановок',
+                errorMessage: 'Пожалуйста, добавьте минимум 2 остановки',
+                exampleTitle: '💡 Пример маршрута:',
+                exampleText: 'Москва → Санкт-Петербург → Казань → Екатеринбург',
+                confirmBtn: '✅ Подтвердить маршрут',
+                savingBtn: '⏳ Сохранение...',
+                successMessage: '✅ Маршрут успешно сохранен!',
+                errorSaving: 'Ошибка при сохранении маршрута. Попробуйте еще раз.',
+                addManually: '➕ Добавить "{query}" вручную',
+                addManuallyDesc: 'Нажмите, чтобы добавить этот город к маршруту',
+                ownCity: 'Собственный город',
+                unknownCountry: 'Неизвестная страна'
+            }
+        };
+        
+        const t = translations[userLang] || translations.uk;
+        
+        // Элементы DOM
+        const stopsContainer = document.getElementById('stopsContainer');
+        const addStopContainer = document.getElementById('addStopContainer');
+        const addStopBtn = document.getElementById('addStopBtn');
+        const cityInput = document.getElementById('cityInput');
+        const cityCount = document.getElementById('cityCount');
+        const errorDiv = document.getElementById('error');
+        const successDiv = document.getElementById('success');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('routeForm');
+        
+        // Массив зупинок
+        let stops = [];
+        
+        // Применяем переводы
+        function applyTranslations() {
+            document.getElementById('pageTitle').textContent = t.pageTitle;
+            document.getElementById('pageDescription').textContent = t.pageDescription;
+            document.getElementById('addStopLabel').textContent = t.addStopLabel;
+            addStopBtn.textContent = t.addStopBtn;
+            cityInput.placeholder = t.cityPlaceholder;
+            errorDiv.textContent = t.errorMessage;
+            document.getElementById('exampleTitle').textContent = t.exampleTitle;
+            document.getElementById('exampleText').textContent = t.exampleText;
+            submitBtn.textContent = t.confirmBtn;
+            document.getElementById('success').textContent = t.successMessage;
+        }
+        
+        // Простий пошук міст без зовнішніх бібліотек
+        let searchTimeout;
+        let suggestionsContainer;
+        
+        function initCitySearch() {
+            // Створюємо контейнер для підказок
+            suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'suggestions-container';
+            suggestionsContainer.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--tg-theme-bg-color, #ffffff);
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                max-height: 200px;
+                overflow-y: auto;
+                display: none;
+            `;
+            
+            addStopContainer.style.position = 'relative';
+            addStopContainer.appendChild(suggestionsContainer);
+            
+            // Обробка введення
+            cityInput.addEventListener('input', handleCityInput);
+            cityInput.addEventListener('keydown', handleKeyDown);
+            
+            // Закриття підказок при кліку поза ними
+            document.addEventListener('click', (e) => {
+                if (!addStopContainer.contains(e.target)) {
+                    hideSuggestions();
+                }
+            });
+        }
+        
+        async function handleCityInput(e) {
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                hideSuggestions();
+                return;
+            }
+            
+            // Очищуємо попередній таймер
+            clearTimeout(searchTimeout);
+            
+            // Встановлюємо новий таймер для затримки запиту
+            searchTimeout = setTimeout(async () => {
+                await searchCities(query);
+            }, 300);
+        }
+        
+        async function searchCities(query) {
+            try {
+                console.log('Searching for:', query);
+                let cities = [];
+                
+                // Спробуємо кілька API для кращих результатів
+                
+                // 1. Спочатку спробуємо GeoNames API (безкоштовний)
+                try {
+                    const geoNamesUrl = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(query)}&maxRows=8&featureClass=P&username=demo&lang=${userLang}`;
+                    console.log('GeoNames URL:', geoNamesUrl);
+                    
+                    const geoResponse = await fetch(geoNamesUrl);
+                    const geoData = await geoResponse.json();
+                    
+                    if (geoData.geonames && geoData.geonames.length > 0) {
+                        cities = geoData.geonames.map(item => ({
+                            name: item.name,
+                            country: item.countryName || 'Невідома країна',
+                            full_name: `${item.name}, ${item.adminName1 || ''}, ${item.countryName || ''}`,
+                            lat: item.lat,
+                            lon: item.lng,
+                            source: 'geonames'
+                        }));
+                        console.log('GeoNames results:', cities);
+                    }
+                } catch (geoError) {
+                    console.log('GeoNames failed:', geoError);
+                }
+                
+                // 2. Якщо GeoNames не дав результатів, спробуємо Nominatim (більш м'який фільтр)
+                if (cities.length === 0) {
+                    try {
+                        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10&addressdetails=1&accept-language=${userLang}`;
+                        console.log('Nominatim URL:', nominatimUrl);
+                        
+                        const nomResponse = await fetch(nominatimUrl);
+                        const nomData = await nomResponse.json();
+                        
+                        // М'якший фільтр - приймаємо більше типів місць
+                        cities = nomData
+                            .filter(item => {
+                                const type = item.type;
+                                const category = item.category;
+                                const cls = item.class;
+                                
+                                // Приймаємо більше варіантів
+                                return (
+                                    type === 'city' || type === 'town' || type === 'village' || 
+                                    type === 'hamlet' || type === 'municipality' || type === 'suburb' ||
+                                    category === 'place' || cls === 'place' || cls === 'boundary'
+                                );
+                            })
+                            .slice(0, 8) // Обмежуємо до 8 результатів
+                            .map(item => {
+                                const nameParts = item.display_name.split(',');
+                                return {
+                                    name: nameParts[0].trim(),
+                                    country: nameParts[nameParts.length - 1].trim(),
+                                    full_name: item.display_name,
+                                    lat: item.lat,
+                                    lon: item.lon,
+                                    source: 'nominatim'
+                                };
+                            });
+                        
+                        console.log('Nominatim results:', cities);
+                    } catch (nomError) {
+                        console.log('Nominatim failed:', nomError);
+                    }
+                }
+                
+                // 3. Якщо і Nominatim не допоміг, спробуємо REST Countries API для країн
+                if (cities.length === 0 && query.length > 2) {
+                    try {
+                        const countriesUrl = `https://restcountries.com/v3.1/name/${encodeURIComponent(query)}?fields=name,capital`;
+                        console.log('REST Countries URL:', countriesUrl);
+                        
+                        const countryResponse = await fetch(countriesUrl);
+                        const countryData = await countryResponse.json();
+                        
+                        if (Array.isArray(countryData)) {
+                            cities = countryData.map(country => ({
+                                name: Array.isArray(country.capital) ? country.capital[0] : country.capital,
+                                country: country.name.common,
+                                full_name: `${country.capital} (столиця ${country.name.common})`,
+                                lat: null,
+                                lon: null,
+                                source: 'countries'
+                            })).filter(city => city.name); // Фільтруємо тільки з назвами
+                            
+                            console.log('Countries API results:', cities);
+                        }
+                    } catch (countryError) {
+                        console.log('Countries API failed:', countryError);
+                    }
+                }
+                
+                // Видаляємо дублікати по назві
+                const uniqueCities = cities.filter((city, index, self) => 
+                    index === self.findIndex(c => 
+                        c.name.toLowerCase() === city.name.toLowerCase()
+                    )
+                );
+                
+                console.log('Final unique cities:', uniqueCities);
+                showSuggestions(uniqueCities, query);
+                
+            } catch (error) {
+                console.error('Error in searchCities:', error);
+                showSuggestions([], query);
+            }
+        }
+        
+        function showSuggestions(cities, query) {
+            suggestionsContainer.innerHTML = '';
+            
+            if (cities.length === 0) {
+                // Показуємо опцію додати місто вручну
+                const manualOption = document.createElement('div');
+                manualOption.className = 'suggestion-item manual-add';
+                manualOption.style.cssText = `
+                    padding: 12px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                    background: #f8f9fa;
+                `;
+                manualOption.innerHTML = `
+                    <div style="font-weight: 600; color: var(--tg-theme-button-color, #0088cc);">
+                        ➕ Додати "${query}" вручну
+                    </div>
+                    <div style="font-size: 12px; color: #666;">
+                        Натисніть, щоб додати це місто до маршруту
+                    </div>
+                `;
+                manualOption.addEventListener('click', () => {
+                    addStop(query, 'Невідома країна');
+                    cityInput.value = '';
+                    hideAddStopInput();
+                });
+                suggestionsContainer.appendChild(manualOption);
+            } else {
+                // Показуємо знайдені міста
+                cities.forEach(city => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.style.cssText = `
+                        padding: 12px 15px;
+                        cursor: pointer;
+                        border-bottom: 1px solid #f0f0f0;
+                    `;
+                                         item.innerHTML = `
+                         <div style="font-weight: 600;">${city.name}</div>
+                         <div style="font-size: 12px; color: #666;">
+                             ${city.country}
+                             ${city.source ? `<span style="opacity: 0.7; margin-left: 8px;">(${city.source})</span>` : ''}
+                         </div>
+                     `;
+                    
+                    item.addEventListener('click', () => {
+                        addStop(city.name, city.country);
+                        cityInput.value = '';
+                        hideAddStopInput();
+                    });
+                    
+                    item.addEventListener('mouseenter', () => {
+                        item.style.background = 'var(--tg-theme-button-color, #0088cc)';
+                        item.style.color = 'white';
+                    });
+                    
+                    item.addEventListener('mouseleave', () => {
+                        item.style.background = '';
+                        item.style.color = '';
+                    });
+                    
+                    suggestionsContainer.appendChild(item);
+                });
+                
+                // Додаємо опцію ручного введення в кінці
+                const manualOption = document.createElement('div');
+                manualOption.className = 'suggestion-item manual-add';
+                manualOption.style.cssText = `
+                    padding: 12px 15px;
+                    cursor: pointer;
+                    background: #f8f9fa;
+                    border-top: 1px solid #e0e0e0;
+                `;
+                manualOption.innerHTML = `
+                    <div style="font-weight: 600; color: var(--tg-theme-button-color, #0088cc);">
+                        ➕ Додати "${query}" вручну
+                    </div>
+                `;
+                manualOption.addEventListener('click', () => {
+                    addStop(query, 'Власне місто');
+                    cityInput.value = '';
+                    hideAddStopInput();
+                });
+                suggestionsContainer.appendChild(manualOption);
+            }
+            
+            suggestionsContainer.style.display = 'block';
+        }
+        
+        function hideSuggestions() {
+            if (suggestionsContainer) {
+                suggestionsContainer.style.display = 'none';
+            }
+        }
+        
+        function handleKeyDown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = cityInput.value.trim();
+                if (query) {
+                    // Додаємо місто вручну при натисканні Enter
+                    addStop(query, 'Власне місто');
+                    cityInput.value = '';
+                    hideAddStopInput();
+                }
+            } else if (e.key === 'Escape') {
+                hideAddStopInput();
+            }
+        }
+        
+        // Добавление зупинки
+        function addStop(name, country) {
+            const stop = { name, country };
+            stops.push(stop);
+            renderStops();
+            updateUI();
+        }
+        
+        // Удаление зупинки
+        function removeStop(index) {
+            stops.splice(index, 1);
+            renderStops();
+            updateUI();
+        }
+        
+        // Отображение зупинок
+        function renderStops() {
+            stopsContainer.innerHTML = '';
+            
+            stops.forEach((stop, index) => {
+                const stopElement = document.createElement('div');
+                stopElement.className = 'stop-item';
+                stopElement.innerHTML = `
+                    <div class="stop-number">${index + 1}</div>
+                    <div class="stop-content">
+                        <div class="stop-name">${stop.name}</div>
+                        <div class="stop-country">${stop.country}</div>
+                    </div>
+                    <button type="button" class="remove-stop" onclick="removeStop(${index})">×</button>
+                `;
+                stopsContainer.appendChild(stopElement);
+            });
+        }
+        
+        // Показать поле ввода
+        function showAddStopInput() {
+            addStopContainer.style.display = 'block';
+            addStopBtn.style.display = 'none';
+            cityInput.focus();
+        }
+        
+        // Скрыть поле ввода
+        function hideAddStopInput() {
+            addStopContainer.style.display = 'none';
+            addStopBtn.style.display = 'block';
+        }
+        
+        // Обновление UI
+        function updateUI() {
+            cityCount.textContent = `${t.stopsCount}: ${stops.length}`;
+            
+            if (stops.length < 2) {
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = true;
+            } else {
+                errorDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        // События
+        addStopBtn.addEventListener('click', showAddStopInput);
+        
+        cityInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideAddStopInput();
+            }
+        });
+        
+        // Обработка формы
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (stops.length < 2) {
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = t.savingBtn;
+            
+            try {
+                const cities = stops.map(stop => stop.name);
+                const citiesString = cities.join(', ');
+                
+                // Отправляем через Telegram WebApp
+                tg.sendData(JSON.stringify({
+                    action: 'cities_selected',
+                    cities: cities,
+                    cities_string: citiesString,
+                    stops: stops
+                }));
+                
+                // Отправляем вебхук на сервер
+                console.log('Sending webhook to:', webhookUrl);
+                try {
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_id: userId,
+                            action: 'cities_selected',
+                            cities: cities,
+                            cities_string: citiesString,
+                            stops: stops,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Webhook sent successfully');
+                    } else {
+                        console.log('Webhook failed with status:', response.status);
+                    }
+                } catch (webhookError) {
+                    console.log('Webhook error:', webhookError);
+                }
+                
+                successDiv.style.display = 'block';
+                
+                // Закрываем WebApp через 1 секунду
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+                
+            } catch (error) {
+                alert(t.errorSaving);
+                submitBtn.disabled = false;
+                submitBtn.textContent = t.confirmBtn;
+            }
+        });
+        
+        // Глобальные функции для кнопок
+        window.removeStop = removeStop;
+        
+        // Инициализация
+        applyTranslations();
+        initCitySearch();
+        updateUI();
+        
+        // Настройка кнопки Telegram WebApp
+        tg.MainButton.text = t.confirmBtn;
+        tg.MainButton.show();
+        
+        tg.MainButton.onClick(() => {
+            form.dispatchEvent(new Event('submit'));
+        });
+        
+        }); // Закриваємо DOMContentLoaded
+    </script>
+</body>
+</html>
