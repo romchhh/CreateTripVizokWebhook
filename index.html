@@ -332,7 +332,6 @@
                 exampleTitle: '💡 Приклад маршруту:',
                 exampleText: 'Київ → Житомир → Рівне → Львів',
                 confirmBtn: '✅ Підтвердити маршрут',
-                savingBtn: '⏳ Збереження...',
                 successMessage: '✅ Маршрут успішно збережено!',
                 errorSaving: 'Помилка при збереженні маршруту. Спробуйте ще раз.',
                 addManually: '➕ Додати "{query}" вручну',
@@ -351,7 +350,6 @@
                 exampleTitle: '💡 Przykład trasy:',
                 exampleText: 'Warszawa → Kraków → Wrocław → Gdańsk',
                 confirmBtn: '✅ Potwierdź trasę',
-                savingBtn: '⏳ Zapisywanie...',
                 successMessage: '✅ Trasa została pomyślnie zapisana!',
                 errorSaving: 'Błąd podczas zapisywania trasy. Spróbuj ponownie.',
                 addManually: '➕ Dodaj "{query}" ręcznie',
@@ -370,7 +368,6 @@
                 exampleTitle: '💡 Route example:',
                 exampleText: 'London → Manchester → Liverpool → Edinburgh',
                 confirmBtn: '✅ Confirm route',
-                savingBtn: '⏳ Saving...',
                 successMessage: '✅ Route saved successfully!',
                 errorSaving: 'Error saving route. Please try again.',
                 addManually: '➕ Add "{query}" manually',
@@ -389,7 +386,6 @@
                 exampleTitle: '💡 Routenbeispiel:',
                 exampleText: 'Berlin → Hamburg → München → Köln',
                 confirmBtn: '✅ Route bestätigen',
-                savingBtn: '⏳ Speichern...',
                 successMessage: '✅ Route erfolgreich gespeichert!',
                 errorSaving: 'Fehler beim Speichern der Route. Bitte versuchen Sie es erneut.',
                 addManually: '➕ "{query}" manuell hinzufügen',
@@ -408,7 +404,6 @@
                 exampleTitle: '💡 Příklad trasy:',
                 exampleText: 'Praha → Brno → Ostrava → Plzeň',
                 confirmBtn: '✅ Potvrdit trasu',
-                savingBtn: '⏳ Ukládání...',
                 successMessage: '✅ Trasa byla úspěšně uložena!',
                 errorSaving: 'Chyba při ukládání trasy. Zkuste to znovu.',
                 addManually: '➕ Přidat "{query}" ručně',
@@ -427,7 +422,6 @@
                 exampleTitle: '💡 Пример за маршрут:',
                 exampleText: 'София → Пловдив → Варна → Бургас',
                 confirmBtn: '✅ Потвърди маршрута',
-                savingBtn: '⏳ Запазване...',
                 successMessage: '✅ Маршрутът е запазен успешно!',
                 errorSaving: 'Грешка при запазването на маршрута. Опитайте отново.',
                 addManually: '➕ Добави "{query}" ръчно',
@@ -446,7 +440,6 @@
                 exampleTitle: '💡 Exemplu de rută:',
                 exampleText: 'București → Cluj-Napoca → Timișoara → Constanța',
                 confirmBtn: '✅ Confirmă ruta',
-                savingBtn: '⏳ Se salvează...',
                 successMessage: '✅ Ruta a fost salvată cu succes!',
                 errorSaving: 'Eroare la salvarea rutei. Încercați din nou.',
                 addManually: '➕ Adaugă "{query}" manual',
@@ -465,7 +458,6 @@
                 exampleTitle: '💡 Útvonal példa:',
                 exampleText: 'Budapest → Debrecen → Szeged → Pécs',
                 confirmBtn: '✅ Útvonal megerősítése',
-                savingBtn: '⏳ Mentés...',
                 successMessage: '✅ Az útvonal sikeresen elmentve!',
                 errorSaving: 'Hiba az útvonal mentésekor. Próbálja újra.',
                 addManually: '➕ "{query}" manuális hozzáadása',
@@ -484,7 +476,6 @@
                 exampleTitle: '💡 Esempio di percorso:',
                 exampleText: 'Roma → Milano → Napoli → Firenze',
                 confirmBtn: '✅ Conferma percorso',
-                savingBtn: '⏳ Salvataggio...',
                 successMessage: '✅ Percorso salvato con successo!',
                 errorSaving: 'Errore nel salvare il percorso. Riprova.',
                 addManually: '➕ Aggiungi "{query}" manualmente',
@@ -503,7 +494,6 @@
                 exampleTitle: '💡 Ejemplo de ruta:',
                 exampleText: 'Madrid → Barcelona → Valencia → Sevilla',
                 confirmBtn: '✅ Confirmar ruta',
-                savingBtn: '⏳ Guardando...',
                 successMessage: '✅ ¡Ruta guardada exitosamente!',
                 errorSaving: 'Error al guardar la ruta. Inténtalo de nuevo.',
                 addManually: '➕ Añadir "{query}" manualmente',
@@ -522,7 +512,6 @@
                 exampleTitle: '💡 Пример маршрута:',
                 exampleText: 'Москва → Санкт-Петербург → Казань → Екатеринбург',
                 confirmBtn: '✅ Подтвердить маршрут',
-                savingBtn: '⏳ Сохранение...',
                 successMessage: '✅ Маршрут успешно сохранен!',
                 errorSaving: 'Ошибка при сохранении маршрута. Попробуйте еще раз.',
                 addManually: '➕ Добавить "{query}" вручную',
@@ -919,9 +908,6 @@
                 return;
             }
             
-            submitBtn.disabled = true;
-            submitBtn.textContent = t.savingBtn;
-            
             try {
                 const cities = stops.map(stop => stop.name);
                 const citiesString = cities.join(', ');
@@ -934,39 +920,36 @@
                     stops: stops
                 }));
                 
-                // Отправляем вебхук на сервер
+                // Отправляем вебхук на сервер (асинхронно, не чекаємо відповіді)
                 console.log('Sending webhook to:', webhookUrl);
-                try {
-                    const response = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            user_id: userId,
-                            action: 'cities_selected',
-                            cities: cities,
-                            cities_string: citiesString,
-                            stops: stops,
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log('Webhook sent successfully');
-                    } else {
-                        console.log('Webhook failed with status:', response.status);
-                    }
-                } catch (webhookError) {
-                    console.log('Webhook error:', webhookError);
-                }
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        action: 'cities_selected',
+                        cities: cities,
+                        cities_string: citiesString,
+                        stops: stops,
+                        timestamp: new Date().toISOString()
+                    })
+                }).then(response => {
+                    console.log('Webhook response:', response.status);
+                }).catch(error => {
+                    console.log('Webhook error:', error);
+                });
                 
+                // Одразу показуємо успіх і закриваємо
+                submitBtn.textContent = t.successMessage;
+                submitBtn.disabled = true;
                 successDiv.style.display = 'block';
                 
-                // Закрываем WebApp через 1 секунду
+                // Закриваємо WebApp через 0.5 секунди
                 setTimeout(() => {
                     tg.close();
-                }, 1000);
+                }, 500);
                 
             } catch (error) {
                 alert(t.errorSaving);
